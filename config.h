@@ -43,9 +43,9 @@
  * that is listed in .gitignore so credentials are not leaked.
  * ------------------------------------------------------------- */
 #define ESP_ENABLE                    1
-#define WIFI_SSID                     "Mihir"
-#define WIFI_PASSWORD                 "1234567890"
-#define THINGSPEAK_WRITE_API_KEY      "231OA4WKM67OYLQK"
+#define WIFI_SSID             "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD         "YOUR_WIFI_PASSWORD"
+#define THINGSPEAK_WRITE_API_KEY  "YOUR_API_KEY_HERE"
 #define THINGSPEAK_HOST               "api.thingspeak.com"
 #define THINGSPEAK_PORT               80
 #define ESP_RESPONSE_BUFFER_SIZE      300
