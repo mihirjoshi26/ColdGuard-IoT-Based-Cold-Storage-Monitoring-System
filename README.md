@@ -107,7 +107,7 @@ Built on the **NXP LPC2148 ARM7TDMI-S** microcontroller, ColdGuard provides:
 
 <!-- 📌 INSTRUCTION: Replace the path below with your actual hardware board image -->
 <!-- Example: ![Hardware Board](images/hardware_board.jpg) -->
-![Full Hardware Board](images/hardware_board.jpg)
+![Full Hardware Board](images/hardware_board.jpeg)
 
 ---
 
@@ -117,7 +117,7 @@ Built on the **NXP LPC2148 ARM7TDMI-S** microcontroller, ColdGuard provides:
 
 <!-- 📌 INSTRUCTION: Replace the path below with your actual display image -->
 <!-- Example: ![LCD Display](images/lcd_display.jpg) -->
-![LCD Display Output](images/display.jpg)
+![LCD Display Output](images/display.jpeg)
 
 ---
 
