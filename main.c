@@ -35,11 +35,30 @@ static void SystemClock_Init(void)
  * blank / corrupted EEPROM (see Init_All). */
 
 /* ---------------------------------------------------------------
+ * DigitWidth — printed character width of a signed integer
+ *   0  → 1,   5  → 1,  24 → 2,  -5 → 2,  -15 → 3
+ * --------------------------------------------------------------- */
+static int DigitWidth(signed int n)
+{
+    int w;
+    if(n == 0) { return 1; }
+    w = (n < 0) ? 1 : 0;       /* leading minus counts as one char */
+    if(n < 0)  { n = -n; }
+    while(n > 0) { n /= 10; w++; }
+    return w;
+}
+
+/* ---------------------------------------------------------------
  * DisplayMonitorScreen
  *
- * Line 1 (max 16 chars):
- *   "T:25oC/4 H:60%  "   actual / setpoint / humidity
- *   Worst case: T:50oC/50 H:99%  = 15 chars — safe
+ * Line 1 — full-width justified across all 16 columns:
+ *   LEFT  "T:XX°C"   right-padded with dynamic spaces
+ *   RIGHT "RH:XX%"   flush to column 15
+ *
+ *   Example layouts (16 chars each):
+ *     "T:24°C    RH:58%"   (2-digit temp, 2-digit humidity)
+ *     "T:5°C     RH:58%"   (1-digit temp)
+ *     "T:-5°C    RH:58%"   (negative temp)
  *
  * Line 2 (max 16 chars):
  *   "Door:Closed     "  (16 chars, space-padded)
@@ -48,19 +67,26 @@ static void SystemClock_Init(void)
 static void DisplayMonitorScreen(signed int temp, unsigned int humidity,
                                  u32 doorOpenMs)
 {
+    int leftLen, rightLen, spaces, i;
+
     /* Overwrite in-place — no LCD_Clear() so no visible flicker */
 
-    /* Line 1: sensor values (pad remaining chars to overwrite stale text) */
+    /* Line 1: left = "T:XX°C", right = "RH:XX%", gap fills to 16 cols */
+    leftLen  = 4 + DigitWidth(temp);         /* 'T'':' + digits + '°''C' */
+    rightLen = 4 + ((humidity < 10U) ? 1 :   /* 'R''H'':' + digits + '%' */
+                    (humidity < 100U) ? 2 : 3);
+    spaces   = 16 - leftLen - rightLen;
+    if(spaces < 1) { spaces = 1; }           /* safety: never 0 or negative */
+
     LCD_Goto(0U, 0U);
     Write_str_LCD("T:");
     Write_int_LCD(temp);
     Write_DAT_LCD((char)0xDF);               /* HD44780 degree symbol */
     Write_DAT_LCD('C');
-    Write_DAT_LCD('/');
-    Write_int_LCD((signed int)g_config.tempSetPoint);
-    Write_str_LCD(" H:");
+    for(i = 0; i < spaces; i++) { Write_DAT_LCD(' '); }
+    Write_str_LCD("RH:");
     Write_int_LCD((signed int)humidity);
-    Write_str_LCD("%   ");                   /* trailing spaces clear old chars */
+    Write_DAT_LCD('%');
 
     /* Line 2: door status — show elapsed seconds when open so there
      * is never a bare "Door:Open" flash before HandleDoorLogic writes
