@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/Language-Embedded%20C-yellow?style=for-the-badge&logo=c&logoColor=white" alt="Language Badge"/>
 </p>
 
-# 🧊 ColdGuard — ARM LPC2148 IoT Cold Storage Monitoring System
+# 🧊 ColdGuard: IoT-Based Cold Storage Monitoring System
 
 <p align="center">
   <strong>🌡️ Real-time IoT-enabled monitoring system for cold storage environments</strong><br/>
