@@ -113,7 +113,7 @@ Built on the **NXP LPC2148 ARM7TDMI-S** microcontroller, ColdGuard provides:
 
 > *ColdGuard running in monitoring mode — LCD shows live temperature, humidity, setpoint values, and door status.*
 
-<img src="images/display.jpeg" alt="LCD Display Output" width="700"/>
+<img src="images/display.png" alt="LCD Display Output" width="700"/>
 
 ---
 
