@@ -83,23 +83,17 @@ Built on the **NXP LPC2148 ARM7TDMI-S** microcontroller, ColdGuard provides:
 
 ### 1. Full Hardware Board
 
-> *Complete ColdGuard hardware assembly showing the LPC2148 development board with all peripheral modules connected — DHT11 sensor, ESP-01 Wi-Fi module, 16×2 LCD, 4×4 keypad, buzzer, door switch, and EEPROM.*
-
 <img src="images/hardware_board.jpeg" alt="Full Hardware Board" width="700"/>
 
 ---
 
 ### 2. LCD Display Output
 
-> *ColdGuard running in monitoring mode — LCD shows live temperature, relative humidity, setpoint values, and door status.*
-
-<img src="images/display.png" alt="LCD Display Output" width="700"/>
+<img src="images/display.jpeg" alt="LCD Display Output" width="700"/>
 
 ---
 
 ### 3. ThingSpeak IoT Dashboard
-
-> *Live ThingSpeak channel showing continuous graphs for temperature (field1), relative humidity (field2), door status (field3), and alarm code (field4) — data uploaded every 60 seconds via the ESP-01 Wi-Fi module.*
 
 <img src="images/thingspeak_dashboard.png" alt="ThingSpeak Dashboard" width="700"/>
 
@@ -138,7 +132,7 @@ The LPC2148 clock tree is configured in `Startup.s` and `main.c`:
 
 ---
 
-### 📍 Complete Pin Mapping — LPC2148
+### 📍 Pin Mapping — LPC2148
 
 #### Port 0 — Main Peripheral Bus
 
@@ -150,14 +144,7 @@ The LPC2148 clock tree is configured in `Startup.s` and `main.c`:
 | P0.3 | SDA0 | I2C0 Data | AT24C256 SDA | OD | Uses AT24C256 onboard pull-up |
 | P0.4 | — | DHT11 Data | DHT11 DATA | I/O | 4.7 kΩ pull-up, single-wire |
 | P0.7 | EINT2 | Door IRQ | Reed Switch → GND | IN | Active-LOW, edge-triggered |
-| P0.8 | — | LCD D0 | LCD pin 7 | OUT | 8-bit data bus (LSB) |
-| P0.9 | — | LCD D1 | LCD pin 8 | OUT | |
-| P0.10 | — | LCD D2 | LCD pin 9 | OUT | |
-| P0.11 | — | LCD D3 | LCD pin 10 | OUT | |
-| P0.12 | — | LCD D4 | LCD pin 11 | OUT | |
-| P0.13 | — | LCD D5 | LCD pin 12 | OUT | |
-| P0.14 | — | LCD D6 | LCD pin 13 | OUT | |
-| P0.15 | — | LCD D7 | LCD pin 14 | OUT | 8-bit data bus (MSB) |
+| P0.8–P0.15 | — | LCD D0–D7 | LCD pins 7–14 | OUT | 8-bit data bus |
 | P0.16 | — | LCD RS | LCD pin 4 | OUT | 0=Command, 1=Data |
 | P0.17 | — | LCD EN | LCD pin 6 | OUT | High-to-low pulse to latch |
 | P0.19 | — | Buzzer | Buzzer (+) | OUT | Active-HIGH drive |
@@ -165,33 +152,21 @@ The LPC2148 clock tree is configured in `Startup.s` and `main.c`:
 
 #### Port 1 — 4×4 Keypad Matrix
 
-| Pin | Function | Direction | Notes |
-|:---:|----------|:---------:|-------|
-| P1.16 | Column 0 | IN | Internal pull-up enabled |
-| P1.17 | Column 1 | IN | Internal pull-up enabled |
-| P1.18 | Column 2 | IN | Internal pull-up enabled |
-| P1.19 | Column 3 | IN | Internal pull-up enabled |
-| P1.20 | Row 0 | OUT | Active-LOW scan |
-| P1.21 | Row 1 | OUT | Active-LOW scan |
-| P1.22 | Row 2 | OUT | Active-LOW scan |
-| P1.23 | Row 3 | OUT | Active-LOW scan |
+| Pin | Function | Direction |
+|:---:|----------|:---------:|
+| P1.16–P1.19 | Column 0–3 | IN (internal pull-up) |
+| P1.20–P1.23 | Row 0–3 | OUT (Active-LOW scan) |
 
 ---
 
 ## 🗺️ Circuit Block Diagram
 
-> **Complete system interconnection diagram showing all modules, communication buses, and data flow.**
-
 <img src="images/circuit_block_diagram.png" alt="Circuit Block Diagram" width="700"/>
-
-### Data Flow Summary
-
-<img src="images/data_flow_summary.png" alt="Data Flow Summary" width="700"/>
 
 ### Interrupt Map
 
 | Interrupt | Source | Pin | Trigger | Purpose |
-|-----------|--------|-----|---------|---------| 
+|-----------|--------|-----|---------|---------|
 | **EINT2** | Door reed switch | P0.7 | Falling edge (Active-LOW) | Wake main loop for door event |
 | **EINT3** | Menu push button | P0.20 | Falling edge (Active-LOW) | Enter configuration menu |
 | **Timer0** | Internal | — | Match register | Microsecond/millisecond delay generation |
@@ -221,20 +196,7 @@ Data is uploaded to **ThingSpeak** via HTTP GET requests through the ESP-01 Wi-F
 | `field1` | Temperature | °C | 0–50 | DHT11 integer temperature reading |
 | `field2` | Relative Humidity | %RH | 20–90 | DHT11 integer relative humidity reading |
 | `field3` | Door Status | flag | 0 / 1 | `1` = door-opened event, `0` = door-closed event |
-| `field4` | Alarm Code | enum | 0–3 | `0`=OK, `1`=Temp high, `2`=Relative Humidity high, `3`=Both |
-
-### HTTP Request Format
-
-```
-GET /update?api_key=<WRITE_KEY>&field1=<temp>&field2=<humidity>&field3=<door>&field4=<alarm>
-Host: api.thingspeak.com
-```
-
-### Door Event Protocol (Dual-Timestamp)
-
-When the door is held open **longer than 15 seconds**, ColdGuard sends **two sequential updates** to enable open-duration calculation on ThingSpeak:
-
-<img src="images/door_event_protocol.png" alt="Door Event Protocol (Dual-Timestamp)" width="700"/>
+| `field4` | Alarm Code | enum | 0–3 | `0`=OK, `1`=Temp high, `2`=RH high, `3`=Both |
 
 ---
 
@@ -250,88 +212,51 @@ The 16×2 LCD shows different screens depending on system state:
 
 All user-adjustable settings are defined in [`config.h`](config.h):
 
-### Sensor & Alarm Thresholds
-
 | Macro | Default | Range | Description |
 |-------|:-------:|:-----:|-------------|
 | `DEFAULT_TEMP_SETPOINT` | 35 °C | 0–50 | Temperature alarm trigger point |
 | `DEFAULT_HUMIDITY_SETPOINT` | 65 %RH | 20–90 | Relative humidity alarm trigger point |
 | `DOOR_OPEN_ALERT_SECONDS` | 15 s | — | Door open duration before alarm |
-| `SENSOR_SAMPLE_DELAY_MS` | 1000 ms | ≥1000 | DHT11 sample interval (min 1s per datasheet) |
-
-### Security
-
-| Macro | Default | Description |
-|-------|:-------:|-------------|
-| `DEFAULT_PASSWORD` | `"1234"` | Factory-default 4-digit PIN |
-| `PASSWORD_MIN_LEN` | 4 | Minimum allowed PIN length |
-| `PASSWORD_MAX_LEN` | 4 | Maximum allowed PIN length |
-| `MAX_PASSWORD_ATTEMPTS` | 3 | Wrong entries before lockout |
-
-### Wi-Fi & ThingSpeak
-
-| Macro | Default | Description |
-|-------|---------|-------------|
-| `ESP_ENABLE` | 1 | Set to `0` to disable all Wi-Fi features |
-| `WIFI_SSID` | `"Mihir"` | Your Wi-Fi network name |
-| `THINGSPEAK_HOST` | `"api.thingspeak.com"` | ThingSpeak API endpoint |
-| `THINGSPEAK_PORT` | 80 | HTTP port |
+| `SENSOR_SAMPLE_DELAY_MS` | 1000 ms | ≥1000 | DHT11 sample interval (min 1 s per datasheet) |
+| `DEFAULT_PASSWORD` | `"1234"` | — | Factory-default 4-digit PIN |
+| `MAX_PASSWORD_ATTEMPTS` | 3 | — | Wrong entries before lockout |
+| `ESP_ENABLE` | 1 | 0/1 | Set to `0` to disable all Wi-Fi features |
+| `EEPROM_FIRST_TIME_SETUP` | 0 | 0/1 | Set to `1` once for factory reset, then back to `0` |
 
 ---
 
-## 📁 File Structure
+## 🔒 Menu & Password System
 
-```
-coldguard/
-│
-├── 📄 README.md                 ← This file
-│
-├── 🖼️ images/                   ← Project photos & diagrams
-│   ├── hardware_board.jpeg
-│   ├── display.jpeg
-│   ├── thingspeak_dashboard.png
-│   ├── system_clock_configuration.png
-│   ├── circuit_block_diagram.png
-│   ├── data_flow_summary.png
-│   ├── software_architecture.png
-│   ├── main_loop_state_machine.png
-│   ├── door_event_protocol.png
-│   ├── lcd_display_states.png
-│   └── menu_password_system.png
-│
-├── ⚙️ Core Application
-│   ├── main.c                   ← Entry point, Init_All(), main loop
-│   ├── config.h                 ← All pin definitions, clocks, thresholds, credentials
-│   ├── app_config.h             ← SystemConfig struct (setpoints + password)
-│   ├── defines.h                ← Bit-manipulation macros (SETBIT, CLRBIT, etc.)
-│   └── types.h                  ← Portable type aliases: u8, u16, u32, s16
-│
-├── 🌡️ Sensor Drivers
-│   ├── dht11.c / dht11.h       ← DHT11 single-wire temperature & relative humidity
-│   └── door_interrupt.c / .h   ← EINT2 ISR, Door_IsOpen() status
-│
-├── 📟 Display
-│   └── lcd.c / lcd.h           ← HD44780 8-bit driver, goto, print, clear
-│
-├── 📡 Communication
-│   ├── uart0.c / uart0.h       ← UART0 driver (9600 baud)
-│   ├── esp01.c / esp01.h       ← ESP-01 AT commands + ThingSpeak HTTP upload
-│   ├── i2c.c / i2c.h           ← I2C0 hardware driver
-│   └── eeprom.c / eeprom.h     ← AT24C256 EEPROM config load/save
-│
-├── ⌨️ User Input
-│   ├── keypad.c / keypad.h     ← 4×4 matrix scan + debounce
-│   ├── password.c / password.h ← PIN entry & verification
-│   └── menu.c / menu.h         ← Interactive configuration menu
-│
-├── 🔔 Output
-│   └── buzzer.c / buzzer.h     ← Buzzer on/off control
-│
-└── 🔧 Utilities
-    ├── delay.c / delay.h       ← Timer0-based microsecond/millisecond delays
-    ├── logger.c / logger.h     ← UART debug print
-    └── rtc.c / rtc.h           ← Real-time clock utilities
-```
+The configuration menu is hardware-gated behind an external interrupt (EINT3) and software-gated behind a 4-digit PIN:
+
+<img src="images/menu_password_system.png" alt="Menu & Password System" width="700"/>
+
+### Menu Options
+
+| Option | Input Range | Stored In |
+|--------|:-----------:|-----------|
+| Temperature Setpoint | 0 – 50 °C | EEPROM + RAM |
+| Relative Humidity Setpoint | 20 – 90 %RH | EEPROM + RAM |
+| Change Password | 4 digits | EEPROM + RAM |
+
+---
+
+## 👨‍💻 Author
+
+**Mihir** — ARM Embedded Systems Major Project
+
+| | |
+|---|---|
+| **Platform** | NXP LPC2148 (ARM7TDMI-S) |
+| **IDE** | Keil µVision4 |
+| **Cloud** | ThingSpeak IoT Platform |
+| **Language** | Embedded C (ANSI C89) |
+
+---
+
+## 📄 License
+
+This project is developed for **academic purposes** as part of a Major Project in ARM Embedded Systems.
 
 ---
 
