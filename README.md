@@ -33,7 +33,7 @@ Built on the **NXP LPC2148 ARM7TDMI-S** microcontroller, ColdGuard provides:
 
 | Parameter | Specification |
 |-----------|---------------|
-| **Microcontroller** | NXP LPC2148 — ARM7TDMI-S core, 60 MHz, 512 KB Flash, 32+8 KB SRAM |
+| **Microcontroller** | NXP LPC2148 — ARM7TDMI-S core, 60 MHz, 512 KB Flash |
 | **Temperature Sensor** | DHT11 — Range: 0–50 °C, Accuracy: ±2 °C, Resolution: 1 °C |
 | **Relative Humidity Sensor** | DHT11 — Range: 20–90 %RH, Accuracy: ±5 %RH |
 | **Display** | 16×2 Character LCD — HD44780 controller, 8-bit parallel interface |
